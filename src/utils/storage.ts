@@ -3,16 +3,18 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export const exportTransactions = (transactions: Transaction[]): void => {
-  const csvContent = [
-    ['Date', 'Type', 'Category', 'Description', 'Amount (₹)'].join(','),
-    ...transactions.map(t => [
-      t.date,
-      t.type,
-      t.category,
-      t.description,
-      `₹${t.amount.toFixed(2)}`
-    ].join(','))
-  ].join('\n');
+ const csvContent = [
+  ['S.No', 'Date', 'Type', 'Category', 'Description', 'Amount (₹)'].join(','),
+  ...transactions.map((t, index) => [
+    index + 1,
+    t.date,
+    t.type,
+    t.category,
+    t.description,
+    `₹${t.amount.toFixed(2)}`
+  ].join(','))
+].join('\n');
+
 
   const blob = new Blob([csvContent], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -58,43 +60,41 @@ export const exportToPDF = (transactions: Transaction[]): void => {
   doc.text(`Total Income: Rs. ${totalIncome.toFixed(2)}`, 20, 55);
   doc.text(`Total Expenses: Rs. ${totalExpenses.toFixed(2)}`, 20, 62);
   doc.text(`Balance: Rs. ${balance.toFixed(2)}`, 20, 69);
-  
-  // Prepare table data
-  const tableData = transactions.map(t => [
-    t.date,
-    t.type.charAt(0).toUpperCase() + t.type.slice(1),
-    t.category,
-    t.description,
-    `Rs. ${t.amount.toFixed(2)}` // Changed here as well
-  ]);
-  // --- CHANGES END HERE ---
-  
-  // Add transactions table
-  autoTable(doc, {
-    // The Amount header should also be updated for clarity
-    head: [['Date', 'Type', 'Category', 'Description', 'Amount (Rs.)']],
-    body: tableData,
-    startY: 80,
-    styles: {
-      fontSize: 9,
-      cellPadding: 3,
-    },
-    headStyles: {
-      fillColor: [148, 163, 184], // slate-400
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-    },
-    alternateRowStyles: {
-      fillColor: [248, 250, 252], // slate-50
-    },
-    columnStyles: {
-      0: { cellWidth: 25 }, // Date
-      1: { cellWidth: 20 }, // Type
-      2: { cellWidth: 35 }, // Category
-      3: { cellWidth: 70 }, // Description
-      4: { cellWidth: 25, halign: 'right' }, // Amount
-    },
-  });
+  const tableData = transactions.map((t, index) => [
+  index + 1,
+  t.date,
+  t.type.charAt(0).toUpperCase() + t.type.slice(1),
+  t.category,
+  t.description,
+  `Rs. ${t.amount.toFixed(2)}`
+]);
+
+autoTable(doc, {
+  head: [['S.No', 'Date', 'Type', 'Category', 'Description', 'Amount (Rs.)']],
+  body: tableData,
+  startY: 80,
+  styles: {
+    fontSize: 9,
+    cellPadding: 3,
+  },
+  headStyles: {
+    fillColor: [148, 163, 184],
+    textColor: [255, 255, 255],
+    fontStyle: 'bold',
+  },
+  alternateRowStyles: {
+    fillColor: [248, 250, 252],
+  },
+  columnStyles: {
+    0: { cellWidth: 15 },  // S.No
+    1: { cellWidth: 25 },  // Date
+    2: { cellWidth: 20 },  // Type
+    3: { cellWidth: 30 },  // Category
+    4: { cellWidth: 65 },  // Description
+    5: { cellWidth: 25, halign: 'right' },  // Amount
+  },
+});
+
   
   // Save the PDF
   doc.save(`transactions-${new Date().toISOString().split('T')[0]}.pdf`);
@@ -123,7 +123,6 @@ export const printTransactions = (transactions: Transaction[]): void => {
           .header { margin-bottom: 20px; }
           .header h1 { font-size: 24px; margin-bottom: 5px; }
           .header p { color: #666; font-size: 14px; }
-          /* --- 3. ADD SUMMARY STYLING --- */
           .summary {
             margin-bottom: 25px;
             padding: 15px;
@@ -158,6 +157,7 @@ export const printTransactions = (transactions: Transaction[]): void => {
         <table>
           <thead>
             <tr>
+              <th>S.No</th>
               <th>Date</th>
               <th>Type</th>
               <th>Category</th>
@@ -166,8 +166,9 @@ export const printTransactions = (transactions: Transaction[]): void => {
             </tr>
           </thead>
           <tbody>
-            ${transactions.map(t => `
+            ${transactions.map((t, index) => `
               <tr>
+                <td>${index + 1}</td>
                 <td>${t.date}</td>
                 <td>${t.type}</td>
                 <td>${t.category}</td>
